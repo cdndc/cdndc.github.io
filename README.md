@@ -1,2 +1,3 @@
 # cdndc.github.io
-CDNDC ♻️✔ [Content Delivery Network Delivery Content]
+CDNDC ♻️✔
+[Content Delivery Network Delivery Content]
