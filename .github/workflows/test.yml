@@ -1,11 +1,22 @@
-name: Halo Workflow
+name: Update data.json
 
 on:
-  workflow_dispatch:  # Bisa dijalankan manual dari tab Actions
+  workflow_dispatch:  # bisa dijalankan manual
 
 jobs:
-  say-hello:
+  update-json:
     runs-on: ubuntu-latest
     steps:
-      - name: Cetak Halo
-        run: echo "Halo dari GitHub Action!"
+      - uses: actions/checkout@v3
+
+      - name: Update data.json
+        run: |
+          echo '{"message": "Halo dari workflow!"}' > data.json
+
+      - name: Commit and push
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add data.json
+          git commit -m "Update via workflow"
+          git push
