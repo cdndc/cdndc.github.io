@@ -7,6 +7,9 @@ export default async function handler(req, res) {
   }
 
   const { nama, comment } = req.body;
+  if (!nama || !comment) {
+    return res.status(400).json({ error: "Missing nama or comment" });
+  }
 
   const octokit = new Octokit({
     authStrategy: createAppAuth,
@@ -24,20 +27,36 @@ export default async function handler(req, res) {
       path: "data.json",
     });
 
-    const json = JSON.parse(Buffer.from(file.content, "base64").toString());
-    json.nama = nama;
-    json.comment = comment;
+    const content = Buffer.from(file.content, "base64").toString();
+    let comments;
+
+    try {
+      const parsed = JSON.parse(content);
+      comments = Array.isArray(parsed) ? parsed : [];
+    } catch (err) {
+      comments = [];
+    }
+
+    comments.push({
+      nama,
+      comment,
+      updated: new Date().toISOString(),
+    });
+
+    const updatedContent = Buffer.from(
+      JSON.stringify(comments, null, 2)
+    ).toString("base64");
 
     await octokit.repos.createOrUpdateFileContents({
       owner: "cdndc",
       repo: "cdndc.github.io",
       path: "data.json",
-      message: `Update comment from ${nama}`,
-      content: Buffer.from(JSON.stringify(json, null, 2)).toString("base64"),
+      message: `Add comment from ${nama}`,
+      content: updatedContent,
       sha: file.sha,
     });
 
-    res.status(200).json({ success: true, message: "✅ Comment updated!" });
+    res.status(200).json({ success: true, message: "✅ Comment added!" });
   } catch (err) {
     console.error("❌ Server error:", err);
     res.status(500).json({ success: false, error: "Server error" });
