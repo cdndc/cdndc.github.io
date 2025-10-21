@@ -1,0 +1,11 @@
+name: Halo Workflow
+
+on:
+  workflow_dispatch:  # Bisa dijalankan manual dari tab Actions
+
+jobs:
+  say-hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cetak Halo
+        run: echo "Halo dari GitHub Action!"
