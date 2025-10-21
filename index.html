@@ -17,7 +17,9 @@
     button { background: #0070f3; color: white; border: none; cursor: pointer; }
     button:hover { background: #0059c1; }
     #status { margin-top: 1em; text-align: center; font-weight: bold; }
-    #latest { margin-top: 2em; background: #fff; padding: 1em; border-radius: 6px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+    #comments { margin-top: 2em; max-width: 600px; margin-left: auto; margin-right: auto; }
+    .comment { background: #fff; padding: 1em; margin-bottom: 1em; border-radius: 6px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+    .comment time { font-size: 0.85em; color: #666; }
   </style>
 </head>
 <body>
@@ -29,21 +31,42 @@
   </form>
   <div id="status"></div>
 
-  <div id="latest">
-    <h3>Komentar Terbaru</h3>
-    <p><strong>Nama:</strong> <span id="latest-nama">...</span></p>
-    <p><strong>Komentar:</strong> <span id="latest-comment">...</span></p>
+  <div id="comments">
+    <h3>📝 Semua Komentar</h3>
+    <div id="comment-list">Memuat komentar...</div>
   </div>
 
   <script>
-    async function fetchLatest() {
+    async function fetchComments() {
+      const container = document.getElementById("comment-list");
+      container.innerHTML = "⏳ Memuat komentar...";
       try {
         const res = await fetch("https://cdndc.github.io/data.json");
         const data = await res.json();
-        document.getElementById("latest-nama").textContent = data.nama || "-";
-        document.getElementById("latest-comment").textContent = data.comment || "-";
+        if (!Array.isArray(data)) {
+          container.innerHTML = "⚠️ Format data.json tidak sesuai.";
+          return;
+        }
+
+        if (data.length === 0) {
+          container.innerHTML = "Belum ada komentar.";
+          return;
+        }
+
+        container.innerHTML = "";
+        data.slice().reverse().forEach(entry => {
+          const div = document.createElement("div");
+          div.className = "comment";
+          div.innerHTML = `
+            <strong>${entry.nama}</strong><br/>
+            <p>${entry.comment}</p>
+            <time>${new Date(entry.updated).toLocaleString("id-ID")}</time>
+          `;
+          container.appendChild(div);
+        });
       } catch (err) {
-        console.error("Gagal ambil data.json:", err);
+        container.innerHTML = "❌ Gagal memuat komentar.";
+        console.error(err);
       }
     }
 
@@ -56,7 +79,7 @@
       status.textContent = "⏳ Mengirim komentar...";
 
       try {
-        const res = await fetch("https://cdndc.vercel.app/api/update", {
+        const res = await fetch("https://cdndc-vercel.vercel.app/api/update", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ nama, comment }),
@@ -65,7 +88,9 @@
         const result = await res.json();
         if (result.success) {
           status.textContent = "✅ Komentar berhasil dikirim!";
-          fetchLatest(); // refresh tampilan komentar
+          document.getElementById("nama").value = "";
+          document.getElementById("comment").value = "";
+          fetchComments(); // refresh list
         } else {
           status.textContent = "⚠️ Gagal mengirim komentar.";
         }
@@ -75,7 +100,7 @@
       }
     }
 
-    fetchLatest(); // ambil komentar saat halaman dimuat
+    fetchComments(); // load saat halaman dibuka
   </script>
 </body>
 </html>
