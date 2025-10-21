@@ -1,20 +1,81 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <title>Commentbox Modular</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Commentbox Sakral</title>
+  <style>
+    body { font-family: sans-serif; padding: 2em; background: #f9f9f9; }
+    form { display: flex; flex-direction: column; max-width: 400px; margin: auto; }
+    input, textarea, button {
+      margin: 0.5em 0;
+      padding: 0.75em;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button { background: #0070f3; color: white; border: none; cursor: pointer; }
+    button:hover { background: #0059c1; }
+    #status { margin-top: 1em; text-align: center; font-weight: bold; }
+    #latest { margin-top: 2em; background: #fff; padding: 1em; border-radius: 6px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+  </style>
 </head>
 <body>
-  <h1 id="output">Memuat...</h1>
-  <button onclick="loadData()">Refresh Data</button>
+  <h2>💬 Komentar Sakral</h2>
+  <form onsubmit="submitComment(event)">
+    <input type="text" id="nama" placeholder="Nama kamu" required />
+    <textarea id="comment" placeholder="Komentar kamu..." required></textarea>
+    <button type="submit">Kirim</button>
+  </form>
+  <div id="status"></div>
 
-<script>
-  async function loadData() {
-    const res = await fetch('data.json?ts=' + Date.now()); // tambahkan timestamp
-    const json = await res.json();
-    document.getElementById('output').innerText = json.message;
-  }
+  <div id="latest">
+    <h3>Komentar Terbaru</h3>
+    <p><strong>Nama:</strong> <span id="latest-nama">...</span></p>
+    <p><strong>Komentar:</strong> <span id="latest-comment">...</span></p>
+  </div>
 
-  loadData(); // auto load saat buka
-</script>
+  <script>
+    async function fetchLatest() {
+      try {
+        const res = await fetch("https://cdndc.github.io/data.json");
+        const data = await res.json();
+        document.getElementById("latest-nama").textContent = data.nama || "-";
+        document.getElementById("latest-comment").textContent = data.comment || "-";
+      } catch (err) {
+        console.error("Gagal ambil data.json:", err);
+      }
+    }
+
+    async function submitComment(e) {
+      e.preventDefault();
+      const nama = document.getElementById("nama").value;
+      const comment = document.getElementById("comment").value;
+      const status = document.getElementById("status");
+
+      status.textContent = "⏳ Mengirim komentar...";
+
+      try {
+        const res = await fetch("https://cdndc.vercel.app/api/update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nama, comment }),
+        });
+
+        const result = await res.json();
+        if (result.success) {
+          status.textContent = "✅ Komentar berhasil dikirim!";
+          fetchLatest(); // refresh tampilan komentar
+        } else {
+          status.textContent = "⚠️ Gagal mengirim komentar.";
+        }
+      } catch (err) {
+        status.textContent = "❌ Error koneksi atau server.";
+        console.error(err);
+      }
+    }
+
+    fetchLatest(); // ambil komentar saat halaman dimuat
+  </script>
 </body>
 </html>
