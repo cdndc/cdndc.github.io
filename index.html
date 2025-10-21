@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Commentbox Modular</title>
+</head>
+<body>
+  <h1 id="output">Memuat...</h1>
+  <button onclick="loadData()">Refresh Data</button>
+
+  <script>
+    async function loadData() {
+      const res = await fetch('data.json');
+      const json = await res.json();
+      document.getElementById('output').innerText = json.message;
+    }
+
+    loadData(); // auto load saat buka
+  </script>
+</body>
+</html>
