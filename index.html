@@ -7,14 +7,14 @@
   <h1 id="output">Memuat...</h1>
   <button onclick="loadData()">Refresh Data</button>
 
-  <script>
-    async function loadData() {
-      const res = await fetch('data.json');
-      const json = await res.json();
-      document.getElementById('output').innerText = json.message;
-    }
+<script>
+  async function loadData() {
+    const res = await fetch('data.json?ts=' + Date.now()); // tambahkan timestamp
+    const json = await res.json();
+    document.getElementById('output').innerText = json.message;
+  }
 
-    loadData(); // auto load saat buka
-  </script>
+  loadData(); // auto load saat buka
+</script>
 </body>
 </html>
